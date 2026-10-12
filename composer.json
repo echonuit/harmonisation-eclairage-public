@@ -2,6 +2,7 @@
     "name": "echonuit/harmonisation-eclairage-public",
     "description": "Outil web d'harmonisation des données d'éclairage public vers le géostandard EclExt",
     "type": "project",
+    "license": "MIT",
     "require": {
         "php": "^8.4",
         "ext-mbstring": "*",
