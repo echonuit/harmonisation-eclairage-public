@@ -82,6 +82,11 @@ PHPStan vérifie en plus trois règles propres au projet, réglées dans `phpsta
 - `PDO::query()` et `PDO::exec()` sont interdits, pour que toutes les requêtes soient préparées ;
 - `var_dump()`, `print_r()` et `var_export()` ne se commitent pas.
 
+PHPStan est réglé au niveau 8, sur une échelle de 0 à 10. Deux de ses exigences surprennent au début :
+
+- chaque paramètre, retour et propriété a un type, et un tableau dit ce qu'il contient dans un commentaire, par exemple `@return array<string, float>` ;
+- une valeur qui peut être `null` ou `false` se vérifie avant d'être utilisée. `fopen()` rend `false` quand le fichier est introuvable, et PHPStan vous oblige à traiter ce cas.
+
 Quand PHPStan signale une erreur, corrigez le code plutôt que de faire taire l'outil. Si une règle vous gêne dans un cas légitime, par exemple un script qui crée les tables, discutez-en en équipe et modifiez la configuration dans une pull request.
 
 ## GitHub Flow, étape par étape
