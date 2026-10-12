@@ -52,6 +52,8 @@ Le dépôt reprend les trois couches que demande le sujet.
 | `tests/` | Les tests, rangés comme `src/`, et les petits fichiers de cas difficiles dans `tests/fichiers/` |
 | `docker/`, `compose.yaml` | L'environnement de développement |
 | `.github/` | L'intégration continue et le modèle de pull request |
+| `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md` | Les consignes que lisent les assistants IA, réglés ici en tuteurs. Elles relèvent de l'équipe pédagogique |
+| `.vscode/` | Les réglages de VS Code partagés par l'équipe |
 
 Chaque couche contient une classe d'exemple : `Siren`, `Diagnostic` et `Accueil`. Elles montrent la forme attendue et sont faites pour être remplacées par les vôtres.
 
