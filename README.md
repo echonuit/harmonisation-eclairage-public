@@ -284,6 +284,7 @@ Le calendrier, la taille des groupes et les modalités d'évaluation sont commun
 
 Les premières séances servent à comprendre les données avant d'écrire l'application : on ne conçoit pas un écran de correspondance sans avoir fait une correspondance à la main.
 
+- [ ] Installer l'environnement en suivant [CONTRIBUTING.md](CONTRIBUTING.md), et vérifier que la page d'accueil affiche PHP et PostGIS
 - [ ] Lire les chapitres du PDF EclExt consacrés au modèle de données et aux listes de valeurs
 - [ ] Télécharger les quatre jeux ouverts et les ouvrir dans un tableur, puis dans QGIS
 - [ ] Convertir à la main le fichier de Marseille vers EclExt, dans un tableur, en notant chaque décision et chaque blocage
