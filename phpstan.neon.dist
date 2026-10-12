@@ -5,8 +5,10 @@ includes:
     - vendor/spaze/phpstan-disallowed-calls/extension.neon
 
 parameters:
-    # De 0 (indulgent) à 10 (strict). Montez d'un cran quand le niveau courant passe sans erreur.
-    level: 5
+    # De 0 (indulgent) à 10 (strict). Au niveau 8, chaque paramètre, retour et propriété
+    # a un type, un tableau dit ce qu'il contient (array<string, float>), et une valeur
+    # qui peut être null se vérifie avant d'être utilisée.
+    level: 8
     paths:
         - public
         - src
