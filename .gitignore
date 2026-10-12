@@ -1,0 +1,18 @@
+# Dépendances installées par Composer : elles se retéléchargent avec `composer install`
+/vendor/
+
+# Secrets et réglages propres à chaque machine (le modèle est .env.example)
+.env
+
+# Caches des outils qualité
+/.phpunit.cache/
+/.php-cs-fixer.cache
+
+# Fichiers produits pendant les essais (dépôts, exports, rapports)
+/var/
+
+# Éditeurs et systèmes
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

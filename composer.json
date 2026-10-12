@@ -1,0 +1,50 @@
+{
+    "name": "echonuit/harmonisation-eclairage-public",
+    "description": "Outil web d'harmonisation des données d'éclairage public vers le géostandard EclExt",
+    "type": "project",
+    "require": {
+        "php": "^8.4",
+        "ext-mbstring": "*",
+        "ext-pdo": "*",
+        "ext-pdo_pgsql": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.3",
+        "phpunit/phpunit": "^13.4",
+        "spaze/phpstan-disallowed-calls": "^4.14"
+    },
+    "autoload": {
+        "psr-4": {
+            "Eclairage\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Eclairage\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "format": "php-cs-fixer fix",
+        "format:check": "php-cs-fixer check --diff",
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "test": "phpunit",
+        "test:conversion": "phpunit --testsuite conversion",
+        "check": [
+            "@format:check",
+            "@analyse",
+            "@test"
+        ]
+    },
+    "scripts-descriptions": {
+        "format": "Met le code en forme (PHP-CS-Fixer)",
+        "format:check": "Vérifie la mise en forme sans rien modifier",
+        "analyse": "Cherche les erreurs sans exécuter le code (PHPStan)",
+        "test": "Lance tous les tests (PHPUnit), base de données comprise",
+        "test:conversion": "Lance les seuls tests de la conversion, sans base de données",
+        "check": "Enchaîne mise en forme, analyse et tests, comme l'intégration continue"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

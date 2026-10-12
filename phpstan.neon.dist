@@ -1,0 +1,48 @@
+# Analyse statique : PHPStan lit le code sans l'exécuter et signale les erreurs.
+# Documentation : https://phpstan.org/user-guide/getting-started
+
+includes:
+    - vendor/spaze/phpstan-disallowed-calls/extension.neon
+
+parameters:
+    # De 0 (indulgent) à 10 (strict). Montez d'un cran quand le niveau courant passe sans erreur.
+    level: 5
+    paths:
+        - public
+        - src
+        - tests
+
+    # Deux règles du sujet, vérifiées automatiquement.
+
+    # 1. La conversion et l'accès à la base ne lisent jamais la requête HTTP :
+    #    seules les pages le font, et elles passent les valeurs en paramètres.
+    disallowedSuperglobals:
+        -
+            superglobal:
+                - '$_GET'
+                - '$_POST'
+                - '$_FILES'
+                - '$_REQUEST'
+                - '$_COOKIE'
+                - '$_SESSION'
+            message: 'la requête HTTP se lit dans public/ ou src/Pages/, puis se passe en paramètre.'
+            allowIn:
+                - public/*
+                - src/Pages/*
+
+    # 2. Des requêtes préparées partout, sans exception.
+    disallowedMethodCalls:
+        -
+            method:
+                - 'PDO::query()'
+                - 'PDO::exec()'
+            message: 'utilisez prepare() puis execute(), y compris pour une requête sans paramètre.'
+
+    # Les traces de débogage ne se commitent pas.
+    disallowedFunctionCalls:
+        -
+            function:
+                - 'var_dump()'
+                - 'print_r()'
+                - 'var_export()'
+            message: 'trace de débogage oubliée.'

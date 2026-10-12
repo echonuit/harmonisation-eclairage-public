@@ -1,0 +1,9 @@
+# Fins de ligne normalisées en LF dans le dépôt, quel que soit le système de chacun
+* text=auto eol=lf
+
+# Les fichiers de test se gardent à l'octet près : leur encodage (Windows-1252)
+# et leurs fins de ligne (CRLF) font partie de ce qu'ils servent à tester.
+tests/fichiers/** -text
+*.xlsx binary
+*.gpkg binary
+*.zip binary

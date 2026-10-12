@@ -1,0 +1,303 @@
+# Travailler à plusieurs dans le dépôt
+
+Ce document fixe comment une modification arrive sur `main` et comment s'écrivent les messages de commit. Il reprend deux conventions très répandues, [GitHub Flow](https://docs.github.com/fr/get-started/using-github/github-flow) et [Conventional Commits](https://www.conventionalcommits.org/fr/v1.0.0/), que vous retrouverez en stage et en entreprise.
+
+Le sujet vous demande un dépôt à l'historique lisible, qu'une autre équipe pourra reprendre l'an prochain. Ces règles servent à cela, et à pouvoir montrer une version qui tourne au commanditaire à chaque point d'étape.
+
+## Les règles en six lignes
+
+- `main` fonctionne toujours : on peut l'installer et faire la démonstration à tout moment.
+- Personne ne pousse directement sur `main`. Toute modification passe par une branche et une pull request.
+- Une branche traite un seul sujet et vit quelques jours au plus.
+- Une pull request est fusionnée quand l'intégration continue est verte et qu'un autre membre de l'équipe l'a relue.
+- La fusion se fait en squash : le titre de la pull request devient le message du commit sur `main`.
+- Les messages de commit et les titres de pull request suivent Conventional Commits, en français.
+
+## Installer l'environnement
+
+Il vous faut Git et Docker (Docker Desktop sous Windows et macOS). PHP, Composer et PostgreSQL tournent dans des conteneurs : vous n'avez pas à les installer.
+
+```bash
+git clone <adresse de votre dépôt>
+cd <dossier du dépôt>
+cp .env.example .env
+docker compose up -d --build
+docker compose exec app composer install
+git config core.hooksPath .githooks
+```
+
+Ouvrez ensuite <http://localhost:8080>. La page d'accueil affiche la version de PHP et celle de PostGIS : si les deux apparaissent, tout est en place.
+
+Quelques précisions sur ces commandes :
+
+- Le fichier `.env` contient les réglages propres à votre machine. Changez-y `PORT_WEB` ou `PORT_BASE` si le port 8080 ou 5432 est déjà pris.
+- Sous Linux avec Docker classique, renseignez `UID_GID` dans `.env` avant le premier démarrage. Sans cela, le dossier `vendor/` appartient à root et vous ne pourrez plus le supprimer sans `sudo`.
+- `composer install` télécharge les outils de développement dans `vendor/`. Relancez-le quand un coéquipier a modifié `composer.json`.
+- La dernière ligne active le hook qui vérifie le format de vos messages de commit. Elle se fait une fois par clone.
+
+La base est joignable depuis votre machine, pour l'ouvrir dans QGIS ou avec `psql` : hôte `localhost`, port 5432, base, utilisateur et mot de passe `eclairage`.
+
+`docker compose down` arrête les conteneurs et garde les données. `docker compose down -v` efface aussi la base et les fichiers déposés.
+
+## Où ranger quoi
+
+Le dépôt reprend les trois couches que demande le sujet.
+
+| Emplacement | Ce qu'on y met |
+| --- | --- |
+| `public/` | Ce qu'Apache sert : `index.php`, point d'entrée unique, et vos fichiers CSS, JavaScript et images |
+| `src/Conversion/` | La logique de conversion. Elle ne lit ni la requête HTTP ni la base |
+| `src/Base/` | L'accès à la base, en requêtes préparées |
+| `src/Pages/` | Les pages : elles lisent la requête, appellent les deux autres couches et rendent le HTML |
+| `tests/` | Les tests, rangés comme `src/`, et les petits fichiers de cas difficiles dans `tests/fichiers/` |
+| `docker/`, `compose.yaml` | L'environnement de développement |
+| `.github/` | L'intégration continue et le modèle de pull request |
+
+Chaque couche contient une classe d'exemple : `Siren`, `Diagnostic` et `Accueil`. Elles montrent la forme attendue et sont faites pour être remplacées par les vôtres.
+
+Le nom d'une classe donne son fichier : `Eclairage\Conversion\Siren` se trouve dans `src/Conversion/Siren.php`. Tant que vous respectez cette correspondance, Composer charge vos classes sans `require`.
+
+## Vérifier son travail
+
+Une seule commande enchaîne les trois vérifications que fait aussi l'intégration continue :
+
+```bash
+docker compose exec app composer check
+```
+
+| Commande | Ce qu'elle fait |
+| --- | --- |
+| `composer format` | Remet le code en forme (PHP-CS-Fixer). Lancez-la avant de commiter |
+| `composer format:check` | Signale ce qui n'est pas en forme, sans rien modifier |
+| `composer analyse` | Cherche les erreurs sans exécuter le code (PHPStan) |
+| `composer test` | Lance tous les tests (PHPUnit). La base doit être démarrée |
+| `composer test:conversion` | Lance les seuls tests de la conversion, sans base |
+| `composer check` | Enchaîne `format:check`, `analyse` et `test` |
+
+Toutes se lancent avec le préfixe `docker compose exec app`. Si vous avez PHP 8.4 et Composer sur votre machine, elles marchent aussi sans lui.
+
+PHPStan vérifie en plus trois règles propres au projet, réglées dans `phpstan.neon.dist` :
+
+- `$_GET`, `$_POST`, `$_FILES`, `$_REQUEST`, `$_COOKIE` et `$_SESSION` ne se lisent que dans `public/` et `src/Pages/`. C'est ce qui garde la conversion testable ;
+- `PDO::query()` et `PDO::exec()` sont interdits, pour que toutes les requêtes soient préparées ;
+- `var_dump()`, `print_r()` et `var_export()` ne se commitent pas.
+
+Quand PHPStan signale une erreur, corrigez le code plutôt que de faire taire l'outil. Si une règle vous gêne dans un cas légitime, par exemple un script qui crée les tables, discutez-en en équipe et modifiez la configuration dans une pull request.
+
+## GitHub Flow, étape par étape
+
+GitHub Flow n'a qu'une branche durable, `main`. Tout le reste se passe sur des branches courtes, qui partent de `main` et y reviennent par une pull request. Il n'y a ni branche `develop` ni branche de version, ce qui convient à une petite équipe qui livre souvent.
+
+### 1. Partir d'une issue
+
+Chaque travail commence par une issue qui dit ce qu'il y a à faire. Une ligne du tableau « Fonctionnalités attendues » du sujet donne en général plusieurs issues : « Dépôt de fichier » se découpe en formulaire, détection du séparateur, détection de l'encodage, conservation du fichier brut.
+
+Assignez-vous l'issue avant de commencer. C'est ce qui évite que deux personnes écrivent la même chose chacune de son côté.
+
+### 2. Créer une branche depuis `main`
+
+```bash
+git switch main
+git pull
+git switch -c feat/12-detection-separateur
+```
+
+Le nom suit le modèle `<type>/<numéro de l'issue>-<sujet-court>`, en minuscules, sans accents, avec des traits d'union. Le type est l'un de ceux du tableau plus bas (`feat`, `fix`, `docs`...).
+
+### 3. Commiter et pousser souvent
+
+```bash
+git add src/Conversion/DetecteurSeparateur.php tests/Conversion/DetecteurSeparateurTest.php
+git commit -m "feat(lecture): détecte le séparateur du CSV"
+git push -u origin feat/12-detection-separateur
+```
+
+Si vous avez activé le hook à l'installation, Git refuse un message qui ne suit pas le format et vous dit pourquoi.
+
+Faites de petits commits, un par préoccupation. Si la description a besoin d'un « et », ce sont probablement deux commits.
+
+Poussez au moins à la fin de chaque séance. Un travail qui n'existe que sur votre machine n'est ni sauvegardé ni visible du reste de l'équipe.
+
+### 4. Ouvrir la pull request tôt
+
+Ouvrez la pull request en brouillon (« draft ») dès le premier commit poussé. L'équipe voit ce qui est en cours, et l'intégration continue tourne à chaque nouveau commit. Passez-la en « ready for review » quand elle est prête à être relue.
+
+Le titre suit Conventional Commits, puisque c'est lui qui restera sur `main`. La description dit trois choses : ce qui change, comment le vérifier, et quelle issue elle ferme.
+
+```markdown
+Détecte le séparateur (virgule, point-virgule, tabulation) sur les premières lignes du fichier.
+
+Pour vérifier : déposer `tests/fichiers/point-virgule-cp1252.csv`, l'aperçu doit montrer 6 colonnes.
+
+Closes #12
+```
+
+La ligne `Closes #12` ferme l'issue automatiquement au moment de la fusion.
+
+Gardez les pull requests petites. Au-delà de quelques centaines de lignes, la relecture devient superficielle, et les conflits avec le travail des autres se multiplient.
+
+### 5. Faire relire
+
+La relecture est faite par un membre de l'équipe qui n'a pas écrit le code. Le relecteur lit le diff, et quand la modification touche un comportement, il récupère la branche et rejoue le parcours décrit dans la pull request.
+
+L'auteur répond à chaque commentaire, par un commit ou par une réponse. Pendant la relecture, ajoutez de nouveaux commits au lieu de modifier les anciens : le relecteur voit ainsi ce qui a changé depuis son dernier passage.
+
+### 6. Mettre la branche à jour
+
+Si `main` a avancé pendant votre travail, ramenez ses changements dans votre branche avant de fusionner.
+
+```bash
+git fetch origin
+git merge origin/main
+```
+
+Résolvez les conflits s'il y en a, relancez les tests, poussez. Un `merge` suffit ici et vous évite de réécrire l'historique d'une branche déjà poussée. Le commit de fusion disparaîtra de toute façon avec le squash.
+
+### 7. Fusionner et nettoyer
+
+Trois conditions : l'intégration continue est verte, un relecteur a approuvé, toutes les conversations sont résolues. L'auteur clique alors sur « Squash and merge », vérifie que le message proposé reprend bien le titre de la pull request, puis supprime la branche.
+
+```bash
+git switch main
+git pull
+git branch -d feat/12-detection-separateur
+```
+
+### Si `main` est cassée
+
+Réparer `main` passe avant tout le reste, parce que toutes les branches en partent. Annulez le commit fautif avec `git revert` dans une pull request, fusionnez, puis reprenez la correction au calme sur une nouvelle branche.
+
+## Conventional Commits
+
+Un message de commit a cette forme :
+
+```
+<type>(<domaine>): <description>
+
+<corps facultatif : pourquoi ce changement>
+
+<pied facultatif : Closes #12>
+```
+
+Avec ce format, `git log --oneline` se lit comme un journal des changements, et l'on retrouve d'un coup d'œil ce qui a touché la validation ou la carte.
+
+### Le type
+
+| Type | Quand l'employer |
+| --- | --- |
+| `feat` | Une nouvelle fonction visible par l'utilisateur |
+| `fix` | La correction d'un bogue |
+| `docs` | La documentation seule : guide du gestionnaire, documentation technique, README |
+| `test` | L'ajout ou la correction de tests, sans toucher au code testé |
+| `refactor` | Une réorganisation du code qui ne change pas son comportement |
+| `perf` | Une amélioration de performance |
+| `style` | La mise en forme du code : indentation, espaces, ordre des imports |
+| `build` | Ce qui construit ou installe l'application : Docker Compose, dépendances |
+| `ci` | La configuration de l'intégration continue |
+| `chore` | L'entretien qui ne rentre dans aucune autre case |
+| `revert` | L'annulation d'un commit précédent |
+
+### Le domaine
+
+Le domaine, entre parenthèses, nomme la partie de l'application concernée. Il est facultatif, par exemple pour un commit `ci` ou `build` qui touche tout le dépôt.
+
+Fixez votre liste en équipe dès le début et écrivez-la ici. Le schéma d'architecture du sujet donne un point de départ : `depot`, `lecture`, `correspondance`, `conversion`, `validation`, `export`, `carte`, `profil`, `standard`, `comptes`.
+
+### La description
+
+Elle dit ce que le commit change, en français, en commençant par une minuscule et sans point final. Visez 72 caractères au plus pour la première ligne.
+
+```
+feat(lecture): détecte le séparateur et l'encodage du CSV
+fix(conversion): accepte la virgule comme séparateur décimal
+test(validation): couvre les lignes sans coordonnées
+docs(guide): ajoute la page sur le rapport de validation
+refactor(correspondance): isole la normalisation des noms de colonnes
+build: ajoute le service PostGIS à Docker Compose
+ci: lance les tests sur chaque pull request
+```
+
+N'écrivez pas d'espace avant les deux-points : `feat(lecture): ...`, jamais `feat(lecture) : ...`. L'habitude typographique française pousse à en mettre un, mais ce deux-points fait partie de la syntaxe, comme celui d'un `case` en PHP, et les outils qui lisent ces messages ne reconnaissent pas la forme avec espace.
+
+### Le corps
+
+La description dit quoi, le corps dit pourquoi. Il est utile dès que la raison ne se devine pas en lisant le diff.
+
+```
+fix(conversion): lit les coordonnées d'Antibes comme des mètres
+
+Les colonnes s'appellent longitude et latitude mais contiennent des
+valeurs projetées. La détection se fie maintenant aux valeurs, plus au
+nom de la colonne.
+
+Closes #31
+```
+
+### Le changement cassant
+
+Un point d'exclamation après le type signale un changement qui casse ce qui existait. Dans ce projet, c'est surtout le cas quand le format des profils de correspondance ou du fichier de définition du standard change : les profils déjà enregistrés ne se relisent plus.
+
+```
+feat(profil)!: range les correspondances de valeurs par champ
+
+BREAKING CHANGE: les profils enregistrés avant ce commit doivent être convertis.
+```
+
+### Le titre de la pull request
+
+Comme la fusion se fait en squash, les commits de votre branche sont réunis en un seul sur `main`, et son message est le titre de la pull request. C'est donc ce titre qu'il faut soigner en priorité. Écrire aussi vos commits de branche dans ce format reste une bonne habitude : avec un seul commit, GitHub propose son message comme titre.
+
+L'intégration continue vérifie ce titre à chaque modification de la pull request. Vous pouvez le vérifier vous-mêmes avant de l'ouvrir, avec le script qu'elle utilise :
+
+```bash
+.github/scripts/verifie-titre.sh "feat(lecture): détecte le séparateur du CSV"
+```
+
+## Avant de demander une relecture
+
+Le modèle de pull request, prérempli à l'ouverture, reprend l'essentiel de cette liste.
+
+- [ ] `composer check` passe sur votre machine
+- [ ] Le code de conversion ajouté ou modifié a ses tests
+- [ ] La branche est à jour avec `main`
+- [ ] Le titre de la pull request suit Conventional Commits
+- [ ] La description dit comment vérifier le changement
+- [ ] Le diff ne contient ni code commenté, ni `var_dump` oublié, ni fichier sans rapport avec le sujet
+
+## Ce qui n'entre pas dans le dépôt
+
+- Les clés d'API, les mots de passe et le fichier `.env`. Si un secret a été poussé, le supprimer dans un commit suivant ne suffit pas, car il reste dans l'historique : changez la clé.
+- Les exports réels fournis par des gestionnaires, tant que le commanditaire n'a pas dit qu'ils pouvaient être diffusés. Les quatre jeux ouverts du sujet, eux, sont publics.
+- Ce qui se régénère ou se télécharge : les dépendances installées, les fichiers déposés dans l'application pendant vos essais, les rapports produits par les outils.
+
+Le fichier `.gitignore` fourni écarte déjà `.env`, `vendor/`, les caches des outils et le dossier `var/`. Complétez-le quand un nouvel outil produit ses propres fichiers.
+
+## Régler le dépôt GitHub une fois pour toutes
+
+Ces réglages font respecter les règles ci-dessus par GitHub lui-même. Ils demandent les droits d'administration sur le dépôt.
+
+Dans Settings > Rules > Rulesets, créez une règle sur la branche par défaut :
+
+- exiger une pull request avant toute fusion, avec une approbation ;
+- exiger que les deux vérifications de l'intégration continue réussissent : « Mise en forme, analyse et tests » et « Titre au format Conventional Commits ». GitHub ne les propose dans la liste qu'après leur première exécution, donc après une première pull request ;
+- bloquer les « force pushes ».
+
+Dans Settings > General > Pull Requests :
+
+- ne garder que « Allow squash merging », avec « Pull request title » comme message par défaut ;
+- cocher « Automatically delete head branches ».
+
+## Trois situations courantes
+
+**Vous avez commité sur `main` par erreur, sans avoir poussé.** Commitez ou remisez (`git stash`) d'abord vos modifications en cours. Créez ensuite la branche là où vous êtes, elle emporte vos commits, puis remettez votre `main` local au niveau de celui de GitHub.
+
+```bash
+git switch -c feat/12-detection-separateur
+git switch main
+git reset --hard origin/main
+git switch feat/12-detection-separateur
+```
+
+**Le message de votre dernier commit est raté.** S'il n'est pas encore poussé, `git commit --amend` permet de le réécrire. S'il est déjà poussé, laissez-le : c'est le titre de la pull request qui restera sur `main`.
+
+**Git annonce un conflit pendant le `merge`.** Ouvrez les fichiers signalés, choisissez entre les deux versions encadrées par `<<<<<<<` et `>>>>>>>`, relancez les tests, puis `git add` et `git commit`. Si le conflit touche du code que vous ne connaissez pas, résolvez-le avec la personne qui l'a écrit.
