@@ -39,6 +39,20 @@ La base est joignable depuis votre machine, pour l'ouvrir dans QGIS ou avec `psq
 
 `docker compose down` arrête les conteneurs et garde les données. `docker compose down -v` efface aussi la base et les fichiers déposés.
 
+### Sans rien installer : dans un Codespace
+
+Un Codespace est un poste de développement qui s'ouvre dans le navigateur, déjà configuré pour ce dépôt. Sur la page GitHub du dépôt, cliquez sur « Code », puis sur l'onglet « Codespaces », puis sur « Create codespace ». Choisissez votre branche de travail plutôt que `main`.
+
+La première ouverture prend quelques minutes : le Codespace démarre l'application et la base, puis installe les outils. Ensuite :
+
+- l'application est sur le port 8080, qui s'ouvre depuis l'onglet « Ports » ;
+- les commandes sont les mêmes que sur votre machine, par exemple `docker compose exec app composer check` ;
+- le fichier `.env` et le hook de commit sont déjà en place.
+
+Un Codespace consomme un quota mensuel gratuit, attaché à votre compte GitHub. Arrêtez-le quand vous avez fini (« Stop codespace ») et supprimez ceux qui ne servent plus. Poussez votre branche avant : un Codespace supprimé emporte le travail qui n'a pas été poussé.
+
+La même configuration sert à l'extension « Dev Containers » de VS Code, si vous préférez travailler dans un conteneur sur votre propre machine : lancez la commande « Dev Containers: Reopen in Container ».
+
 ## Où ranger quoi
 
 Le dépôt reprend les trois couches que demande le sujet.
@@ -51,6 +65,7 @@ Le dépôt reprend les trois couches que demande le sujet.
 | `src/Pages/` | Les pages : elles lisent la requête, appellent les deux autres couches et rendent le HTML |
 | `tests/` | Les tests, rangés comme `src/`, et les petits fichiers de cas difficiles dans `tests/fichiers/` |
 | `docker/`, `compose.yaml` | L'environnement de développement |
+| `.devcontainer/` | Sa version pour GitHub Codespaces et pour l'extension Dev Containers |
 | `.github/` | L'intégration continue et le modèle de pull request |
 | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md` | Les consignes que lisent les assistants IA, réglés ici en tuteurs. Elles relèvent de l'équipe pédagogique |
 | `.vscode/` | Les réglages de VS Code partagés par l'équipe |

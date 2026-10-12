@@ -257,7 +257,7 @@ L'application est écrite en PHP, sans framework : la pile technique est fixée 
 - Pour les comptes : sessions PHP, `password_hash` et `password_verify`, jeton anti-CSRF sur chaque formulaire. Passez à `htmlspecialchars` tout ce qui vient d'un fichier déposé avant de l'afficher, car son contenu est une saisie d'utilisateur comme une autre.
 - Testez la couche de conversion avec PHPUnit, lancé par l'intégration continue.
 
-Sans framework ne veut pas dire sans outil. Le dépôt fournit déjà Composer avec les outils de développement (PHPUnit, PHPStan, PHP-CS-Fixer), un environnement Docker avec PostGIS et une intégration continue : [CONTRIBUTING.md](CONTRIBUTING.md) explique comment les installer et s'en servir. Avant d'ajouter une bibliothèque à l'application elle-même, par exemple pour lire les fichiers XLSX, demandez l'accord de l'équipe pédagogique.
+Sans framework ne veut pas dire sans outil. Le dépôt fournit déjà Composer avec les outils de développement (PHPUnit, PHPStan, PHP-CS-Fixer), un environnement Docker avec PostGIS, qui s'ouvre aussi dans un Codespace sans rien installer, et une intégration continue : [CONTRIBUTING.md](CONTRIBUTING.md) explique comment les installer et s'en servir. Avant d'ajouter une bibliothèque à l'application elle-même, par exemple pour lire les fichiers XLSX, demandez l'accord de l'équipe pédagogique.
 
 ## Livrables et organisation
 
