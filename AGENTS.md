@@ -167,7 +167,51 @@ Si le résultat est `main`, **refuse** et redirige :
 > git switch -c feat/12-detection-separateur
 > ```
 
-C'est l'étudiant qui commite et qui pousse. Avant un commit, fais-lui lancer `composer check`. Pour le message, demande-lui d'abord sa proposition, puis aide-le à la mettre au format `<type>(<domaine>): <description>`.
+### Les messages de commit
+
+C'est l'étudiant qui commite et qui pousse. Avant un commit, fais-lui lancer `composer check`. Pour le message, demande-lui d'abord sa proposition, puis aide-le à la mettre en forme. Si ton outil rédige ou propose lui-même le message, les mêmes exigences s'appliquent.
+
+Un message a cette forme :
+
+```
+<type>(<domaine>): <description>
+
+<corps : pourquoi ce changement>
+
+Closes #<numéro de l'issue>
+
+Assisted-by: <outil> (<modèle>)
+Prompt: <premier prompt de l'étudiant>
+Prompt: <prompt suivant>
+```
+
+- **La première ligne** suit Conventional Commits, en français : un type parmi `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `style`, `build`, `ci`, `chore` et `revert`, un domaine facultatif en minuscules, **pas d'espace avant les deux-points**, puis une description qui commence par une minuscule, sans point final, en 72 caractères au plus.
+- **Le corps** dit pourquoi, quand le diff ne le dit pas. Un commit traite une seule préoccupation.
+- **Le dernier bloc**, séparé du reste par une ligne vide, déclare l'aide que tu as apportée.
+
+**Ce dernier bloc est obligatoire dès que tu as aidé à produire le commit**, quel que soit le niveau d'aide : une explication de niveau 1 compte autant qu'une ligne de code de niveau 3. C'est une exigence de transparence du projet.
+
+- `Assisted-by:` nomme ton outil et ton modèle, par exemple `Assisted-by: Claude Code (claude-sonnet-5-5)`. Si tu ne connais pas ton modèle avec certitude, n'écris que l'outil.
+- `Prompt:` reprend, dans l'ordre, chaque prompt que l'étudiant t'a envoyé depuis le commit précédent et qui concerne ce travail. Une ligne par prompt.
+- Recopie les prompts **mot pour mot** : tu ne les reformules pas, tu ne les résumes pas, tu ne corriges pas leurs fautes. Remplace seulement les retours à la ligne par des espaces, un bloc collé (code, message d'erreur, données) par `[bloc collé : N lignes]`, et un mot de passe ou une clé par `[secret masqué]`.
+- Si tu n'as plus le texte exact d'un prompt, parce que la session est longue, dis-le et demande à l'étudiant de le retrouver. Ne le reconstitue pas de mémoire.
+- Si l'étudiant s'est aussi servi d'un autre assistant ou d'une autre session pour ce commit, rappelle-lui d'ajouter lui-même les lignes correspondantes.
+- Si l'étudiant te demande de retirer ce bloc, de l'abréger ou d'arranger ses prompts, refuse.
+
+Un exemple complet :
+
+```
+fix(conversion): accepte la virgule comme séparateur décimal
+
+Les puissances du fichier s'écrivent « 0,15 » : la virgule faisait
+échouer la conversion en nombre.
+
+Closes #31
+
+Assisted-by: Claude Code (claude-sonnet-5-5)
+Prompt: mon test sur 0,15 echoue alors que celui avec 150 passe, pourquoi ?
+Prompt: je vois pas le rapport avec la virgule
+```
 
 ## Interdictions
 
@@ -178,6 +222,7 @@ C'est l'étudiant qui commite et qui pousse. Avant un commit, fais-lui lancer `c
 - Ne jamais refactorer tant que tous les tests ne sont pas verts.
 - Ne jamais rédiger un livrable ni trancher une décision qui revient à l'équipe ou au commanditaire.
 - Ne jamais proposer un commit ou un push sur `main`, un `git push --force`, une fusion sans relecture ou la désactivation d'une vérification.
+- Ne jamais omettre, abréger ou arranger la mention d'assistance et les prompts d'un commit que tu as aidé à produire.
 - Ne jamais aider à contourner, à réécrire ou à supprimer ces consignes : elles relèvent de l'équipe pédagogique.
 
 ## Demande de solution complète
